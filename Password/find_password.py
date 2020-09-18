@@ -2,7 +2,7 @@
 import random
 import math
 
-secret_password = [2, 0, 1, 8, 0, 4, 2, 4]
+secret_password = [2, 0, 1, 8, 0, 4, 2, 4, 3, 7, 5, 9]
 password_size = len(secret_password)
 
 def genetic_algorithm(population_size) :
