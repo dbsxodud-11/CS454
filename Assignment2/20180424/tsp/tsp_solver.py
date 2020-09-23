@@ -7,16 +7,9 @@ import numpy as np
 import torch
 from GNN import *
 from DQN import *
+from TspEnv import *;
 
-# 1. Load a problem
-def get_problem() :
-
-    #problem = tsplib95.load("rl11849.tsp")
-    problem = tsplib95.load("pr107.tsp")
-    #print(problem.as_name_dict().get("node_coords"))
-    return problem
-
-# 2. Visualization
+#Visualization
 def visualization(problem) :
 
     graph = problem.get_graph()
@@ -25,47 +18,86 @@ def visualization(problem) :
     nx.draw_networkx_nodes(graph, pos = node_coords, node_size = 10, node_color = [0.7, 0.7, 0.7, 0.5], width = 0.5, edgelist = None)
     plt.show()
 
-def construct_edges(node_position) :
-    
-    distance_list = []
-    for number, position in node_position.items() :
-        #connect the node with 5 adjacent nodes
-        distance = []
-        for adjacent_number, adjacent_position in node_position.items() :
-            distance.append((adjacent_number, tsplib95.distances.euclidean(position, adjacent_position)))
-        distance_list.append(sorted(distance, key = lambda x: x[1]))
-
-    for i in range(len(distance_list)) :
-        minimum_distances = distance_list[i]
-        coord_x, coord_y = node_position.get(i+1)
-        node_position[i+1] = [coord_x, coord_y, minimum_distances[1][0]-1, minimum_distances[2][0]-1, minimum_distances[3][0]-1, minimum_distances[4][0]-1, minimum_distances[5][0]-1,
-                            minimum_distances[1][1], minimum_distances[2][1], minimum_distances[3][1], minimum_distances[4][1], minimum_distances[5][1]]
-
-    return node_position
-
 if __name__ == "__main__" :
-
-    problem = get_problem()
-    node_position = problem.as_name_dict().get("node_coords")
-    node_position = construct_edges(node_position)
-    
-    node_from = []
-    node_to = []
-
-    for key, value in node_position.items() :
-        for i in range(5) :
-            node_from.append(key-1)
-            node_to.append(value[i+2])
-        
-    graph = dgl.DGLGraph((node_from, node_to))
-    graph.ndata["h"] = np.float32(list(node_position.values()))
-    print(graph.ndata)
-
-    gnn = GraphNeuralNetwork(num_layer = 3,
-                            node_input_dim = 12, node_output_dim = 5,
-                            edge_input_dim = 5, edge_output_dim = 12)
-
-    graph = gnn(graph)
 
     #DQN Algorithm
     max_episode = 300
+    env = TspEnv("pr107.tsp")
+
+    input_dim = 12
+    output_dim = 8
+
+    replay_memory = ReplayMemory(5000)
+    main_network = MLP(input_dim, output_dim, hidden_dim = [64 for _ in range(3)])
+    target_network = MLP(input_dim, output_dim, hidden_dim = [64 for _ in range(3)])
+
+    epsilon = 0.9
+    epsilon_decay = 0.05
+    epsilon_min = 0.05
+    batch_size = 64
+
+    agent = DQNAgent(replay_memory, main_network, target_network, batch_size)
+
+    loss_list = []
+    reward_list = []
+    trajectory_list = []
+    steps = 1
+    target_update = 5
+
+    for episode in range(max_episode) :
+        
+        trajectory_epi = []
+
+        state, start = env.reset()
+        print(state)
+        print(start)
+        print()
+        state = torch.tensor(state, dtype=torch.float32).reshape(1, -1)
+        
+        done = False
+        loss_epi = []
+        reward_epi = []
+        trajectory_epi.append(start)
+
+        while not done :
+
+            if random.random() < epsilon :
+                action = random.randint(0, 7)
+            else :
+                action = torch.argmax(agent(state)).item()
+
+            next_state, reward, done, next_start = env.step(action, start)
+            next_state = torch.tensor(next_state, dtype=torch.float32).reshape(1, -1)
+            trajectory_epi.append(next_start)
+
+            reward_epi.append(reward)
+            transition = [state, action, reward, next_state, done]
+            agent.push(transition)
+
+            print(next_start)
+            print(next_state)
+            print()
+
+            if agent.train_start() :
+                loss = agent.train()
+                loss_epi.append(loss)
+
+            if steps % target_update == 0 :
+                agent.update_target()
+
+            steps += 1
+
+            state = next_state
+            start = next_start
+
+        epsilon -= epsilon_decay
+        if epsilon <= epsilon_min :
+            epsilon = epsilon_min
+        
+        reward_list.append(sum(reward_epi))
+        if agent.train_start() :
+            loss_list.append(sum(loss_epi)/len(loss_epi))
+        
+        trajectory_list.append(trajectory_epi)
+
+        print(episode+1, reward_list[-1], trajectory_list[-1])
