@@ -77,6 +77,7 @@ class TspEnv :
 
         for i in range(len(distance_list)) :
             minimum_distances = distance_list[i]
+            return 3
             coord_x, coord_y = node_position.get(i+1)
             node_position[i+1] = [coord_x, coord_y, minimum_distances[0][0], minimum_distances[1][0], minimum_distances[2][0], minimum_distances[3][0], minimum_distances[4][0], minimum_distances[5][0], minimum_distances[6][0], minimum_distances[7][0],
                                 minimum_distances[0][1], minimum_distances[1][1], minimum_distances[2][1], minimum_distances[3][1], minimum_distances[4][1], minimum_distances[5][1], minimum_distances[6][1], minimum_distances[7][1]]

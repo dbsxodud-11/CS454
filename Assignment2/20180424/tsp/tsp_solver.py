@@ -7,7 +7,8 @@ import numpy as np
 import torch
 from GNN import *
 from DQN import *
-from TspEnv import *;
+#from TspEnv import *;
+from TspEnv_v2 import *;
 
 #Visualization
 def visualization(problem) :
@@ -21,8 +22,7 @@ def visualization(problem) :
 if __name__ == "__main__" :
 
     #DQN Algorithm
-    max_episode = 300
-    env = TspEnv("pr107.tsp")
+    max_episode = 100
 
     input_dim = 12
     output_dim = 8
@@ -46,12 +46,10 @@ if __name__ == "__main__" :
 
     for episode in range(max_episode) :
         
-        trajectory_epi = []
+        env = TspEnv("pr107.tsp")
 
+        trajectory_epi = []
         state, start = env.reset()
-        print(state)
-        print(start)
-        print()
         state = torch.tensor(state, dtype=torch.float32).reshape(1, -1)
         
         done = False
@@ -62,7 +60,7 @@ if __name__ == "__main__" :
         while not done :
 
             if random.random() < epsilon :
-                action = random.randint(0, 7)
+                action = random.randint(0, 4)
             else :
                 action = torch.argmax(agent(state)).item()
 
@@ -70,13 +68,12 @@ if __name__ == "__main__" :
             next_state = torch.tensor(next_state, dtype=torch.float32).reshape(1, -1)
             trajectory_epi.append(next_start)
 
+            if done :
+                break
+
             reward_epi.append(reward)
             transition = [state, action, reward, next_state, done]
             agent.push(transition)
-
-            print(next_start)
-            print(next_state)
-            print()
 
             if agent.train_start() :
                 loss = agent.train()
@@ -100,4 +97,10 @@ if __name__ == "__main__" :
         
         trajectory_list.append(trajectory_epi)
 
-        print(episode+1, reward_list[-1], trajectory_list[-1])
+        print(episode+1, reward_list[-1])
+
+    plt.plot(loss_list)
+    plt.close("all")
+
+    plt.plot(reward_list)
+    plt.close("all")
