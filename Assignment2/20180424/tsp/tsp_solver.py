@@ -22,9 +22,9 @@ def visualization(problem) :
 if __name__ == "__main__" :
 
     #DQN Algorithm
-    max_episode = 100
+    max_episode = 1
 
-    input_dim = 12
+    input_dim = 16
     output_dim = 8
 
     replay_memory = ReplayMemory(5000)
@@ -41,16 +41,18 @@ if __name__ == "__main__" :
     loss_list = []
     reward_list = []
     trajectory_list = []
+    best_performance_episode = -1
+    best_performance = None
     steps = 1
     target_update = 5
 
     for episode in range(max_episode) :
         
-        env = TspEnv("pr107.tsp")
-
+        #env = TspEnv("pr107.tsp")
+        env = TspEnv("rl11849.tsp")
         trajectory_epi = []
         state, start = env.reset()
-        state = torch.tensor(state, dtype=torch.float32).reshape(1, -1)
+        #state = torch.tensor(state, dtype=torch.float32).reshape(1, -1)
         
         done = False
         loss_epi = []
@@ -60,12 +62,12 @@ if __name__ == "__main__" :
         while not done :
 
             if random.random() < epsilon :
-                action = random.randint(0, 4)
+                action = random.randint(0, 7)
             else :
                 action = torch.argmax(agent(state)).item()
 
             next_state, reward, done, next_start = env.step(action, start)
-            next_state = torch.tensor(next_state, dtype=torch.float32).reshape(1, -1)
+            #next_state = torch.tensor(next_state, dtype=torch.float32).reshape(1, -1)
             trajectory_epi.append(next_start)
 
             if done :
@@ -81,9 +83,9 @@ if __name__ == "__main__" :
 
             if steps % target_update == 0 :
                 agent.update_target()
-
+            print(steps)
             steps += 1
-
+            
             state = next_state
             start = next_start
 
@@ -91,7 +93,16 @@ if __name__ == "__main__" :
         if epsilon <= epsilon_min :
             epsilon = epsilon_min
         
-        reward_list.append(sum(reward_epi))
+        total_reward = sum(reward_epi)
+        if best_performance_episode == -1 :
+            best_performance_episode = episode
+            best_performance = -total_reward
+        else :
+            if best_performance > -total_reward :
+                best_performance_episode = episode
+                best_performance = -total_reward
+
+        reward_list.append(total_reward)
         if agent.train_start() :
             loss_list.append(sum(loss_epi)/len(loss_epi))
         
@@ -100,7 +111,13 @@ if __name__ == "__main__" :
         print(episode+1, reward_list[-1])
 
     plt.plot(loss_list)
+    plt.show()
     plt.close("all")
 
     plt.plot(reward_list)
+    plt.show()
     plt.close("all")
+
+    print("Best Episode: " + str(best_performance_episode))
+    print("Best Performance: " + str(best_performance))
+    print("Trajectory: " + str(trajectory_list[best_performance_episode]))
