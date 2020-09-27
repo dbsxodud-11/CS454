@@ -24,7 +24,7 @@ if __name__ == "__main__" :
     #DQN Algorithm
     max_episode = 1
 
-    input_dim = 16
+    input_dim = 12
     output_dim = 8
 
     replay_memory = ReplayMemory(5000)
@@ -51,7 +51,9 @@ if __name__ == "__main__" :
         #env = TspEnv("pr107.tsp")
         env = TspEnv("rl11849.tsp")
         trajectory_epi = []
-        state, start = env.reset()
+        graph, start = env.reset()
+        state = agent.get_state(graph, start)
+        print(state, start)
         #state = torch.tensor(state, dtype=torch.float32).reshape(1, -1)
         
         done = False
@@ -66,13 +68,16 @@ if __name__ == "__main__" :
             else :
                 action = torch.argmax(agent(state)).item()
 
-            next_state, reward, done, next_start = env.step(action, start)
+            next_graph, reward, done, next_start = env.step(action, start)
+            
             #next_state = torch.tensor(next_state, dtype=torch.float32).reshape(1, -1)
             trajectory_epi.append(next_start)
 
             if done :
                 break
 
+            next_state = agent.get_state(next_graph, next_start)
+            print(next_state, next_start)
             reward_epi.append(reward)
             transition = [state, action, reward, next_state, done]
             agent.push(transition)

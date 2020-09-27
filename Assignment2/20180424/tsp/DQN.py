@@ -4,6 +4,7 @@ import torch.optim as optim
 import numpy as np
 import random
 from collections import deque
+from GNN import *
 
 def update_model(source, target, tau) :
     for source_param, target_param in zip(source.parameters(), target.parameters()) :
@@ -101,3 +102,13 @@ class DQNAgent(nn.Module) :
     def update_target(self) :
 
         update_model(self.main_network, self.target_network, tau=1.0)
+
+    def get_state(self, graph, start) :
+
+        self.gnn = GraphNeuralNetwork(num_layer = 3,
+                                node_input_dim = 14, node_output_dim = 12,
+                                edge_input_dim = 5, edge_output_dim = 12)
+        
+        graph = self.gnn(graph)
+
+        return graph.ndata["h"][start].reshape(1, -1)

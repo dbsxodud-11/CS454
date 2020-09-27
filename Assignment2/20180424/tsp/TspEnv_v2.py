@@ -18,14 +18,33 @@ class TspEnv:
         self.node_position = self.problem.as_name_dict().get("node_coords")
         self.numberOfNodes = len(self.node_position)
 
+        #Get Distance Information
+        self.distances = dict()
+        self.statistics = dict()
+        for i in range(self.numberOfNodes) :
+            self.distances[i+1] = dict()
+            self.statistics[i+1] = dict()
+            for j in range(12) :
+                self.statistics[i+1][j] = 0
+
+        for i in range(self.numberOfNodes) :
+            if i % 100 == 0 : print(str(i / 11849 * 100) + "%")
+            for j in range(self.numberOfNodes) :
+                if i == j : continue
+                else :
+                    distance = math.sqrt((self.node_position[i+1][0] - self.node_position[j+1][0])**2 + (self.node_position[i+1][1] - self.node_position[j+1][1])**2)
+                    self.distances[i+1][j+1] = distance
+                    distance_class = int(distance * (10 ** -3))
+                    self.statistics[i+1][min(distance_class, 11)] = self.statistics[i+1].get(min(distance_class, 11))+1
+
     def reset(self) :
 
         start = random.randint(0, self.numberOfNodes-1)
-        return self.get_state(start), start
+        return self.get_graph(start), start
 
-    def get_state(self, start) :
+    def get_graph(self, start) :
 
-        if len(self.node_position) == 1 : return torch.zeros(12)
+        if len(self.node_position) == 1 : return dgl.DGLGraph()
         #Create a Graph
         node_from = []
         node_to = []
@@ -57,28 +76,8 @@ class TspEnv:
                 node_to.append(adjacent_nodes[i]-1)
             self.edges[nodeID] = adjacent_nodes
 
-            min_distance = 1000000
-            max_distance = 0
-            for other_nodeID, other_position in self.node_position.items() :
-                if nodeID == other_nodeID : continue
-                distance = math.sqrt((position[0] - other_position[0])**2 + (position[1] - other_position[1])**2)
-                if distance < 1000 : node_feature[2] += 1
-                elif (distance < 2000) & (distance >= 1000) : node_feature[3] += 1
-                elif (distance < 3000) & (distance >= 2000) : node_feature[4] += 1
-                elif (distance < 4000) & (distance >= 3000) : node_feature[5] += 1
-                elif (distance < 5000) & (distance >= 4000) : node_feature[6] += 1
-                elif (distance < 6000) & (distance >= 5000) : node_feature[7] += 1
-                elif (distance < 7000) & (distance >= 6000) : node_feature[8] += 1
-                elif (distance < 8000) & (distance >= 7000) : node_feature[9] += 1
-                elif (distance < 9000) & (distance >= 10000) : node_feature[10] += 1
-                else : node_feature[11] += 1
-
-                if distance < min_distance :
-                    node_feature[12] = distance
-                    min_distance = distance
-                if distance > max_distance :
-                    node_feature[13] = distance
-                    max_distance = distance 
+            for i in range(12) :
+                node_feature[i+2] = self.statistics[nodeID].get(i)
 
             #print(node_feature)
             node_features.append(node_feature)
@@ -94,15 +93,8 @@ class TspEnv:
             self.graph.edata["h"] = np.float32(np.random.randn(len(self.node_position)*8+1, 5))
         else :
             self.graph.edata["h"] = np.float32(np.random.randn(len(self.node_position)*8, 5))
-
-        #Communicate with other nodes with Graph Neural Network
-        self.gnn = GraphNeuralNetwork(num_layer = 5,
-                                    node_input_dim = 14, node_output_dim = 16,
-                                    edge_input_dim = 5, edge_output_dim = 16)
-
-        self.graph = self.gnn(self.graph)
         
-        return self.graph.ndata["h"][start].reshape(1, -1)
+        return self.graph
 
     def step(self, action, start) :
         #Remove start node from node position
@@ -113,7 +105,7 @@ class TspEnv:
         next_position = self.node_position.get(next_start)
 
         #Get next state, reward, done, next_start
-        next_state = self.get_state(next_start-1)
+        next_graph = self.get_graph(next_start-1)
         reward = -math.sqrt((position[0] - next_position[0])**2 + (position[1] - next_position[1])**2)
         done = self.get_done()
 
