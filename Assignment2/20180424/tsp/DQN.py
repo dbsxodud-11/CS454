@@ -106,9 +106,9 @@ class DQNAgent(nn.Module) :
     def get_state(self, graph, start) :
 
         self.gnn = GraphNeuralNetwork(num_layer = 3,
-                                node_input_dim = 14, node_output_dim = 12,
+                                node_input_dim = 14, node_output_dim = 14,
                                 edge_input_dim = 5, edge_output_dim = 12)
         
         graph = self.gnn(graph)
 
-        return graph.ndata["h"][start].reshape(1, -1)
+        return graph.ndata["h"][start].reshape(1, -1).detach()

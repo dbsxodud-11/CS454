@@ -22,10 +22,10 @@ def visualization(problem) :
 if __name__ == "__main__" :
 
     #DQN Algorithm
-    max_episode = 1
+    max_episode = 10
 
-    input_dim = 12
-    output_dim = 8
+    input_dim = 14
+    output_dim = 12
 
     replay_memory = ReplayMemory(5000)
     main_network = MLP(input_dim, output_dim, hidden_dim = [64 for _ in range(3)])
@@ -46,38 +46,36 @@ if __name__ == "__main__" :
     steps = 1
     target_update = 5
 
+    #env = TspEnv("pr107.tsp")
+    env = TspEnv("rl11849.tsp")
+
     for episode in range(max_episode) :
         
-        #env = TspEnv("pr107.tsp")
-        env = TspEnv("rl11849.tsp")
         trajectory_epi = []
         graph, start = env.reset()
         state = agent.get_state(graph, start)
-        print(state, start)
-        #state = torch.tensor(state, dtype=torch.float32).reshape(1, -1)
-        
+        #print(state, start)
         done = False
         loss_epi = []
         reward_epi = []
-        trajectory_epi.append(start)
+        trajectory_epi.append(start+1)
 
         while not done :
 
             if random.random() < epsilon :
-                action = random.randint(0, 7)
+                action = random.randint(0, 11)
             else :
                 action = torch.argmax(agent(state)).item()
 
             next_graph, reward, done, next_start = env.step(action, start)
-            
-            #next_state = torch.tensor(next_state, dtype=torch.float32).reshape(1, -1)
-            trajectory_epi.append(next_start)
+
+            trajectory_epi.append(next_start+1)
 
             if done :
                 break
 
             next_state = agent.get_state(next_graph, next_start)
-            print(next_state, next_start)
+            #print(next_state, next_start)
             reward_epi.append(reward)
             transition = [state, action, reward, next_state, done]
             agent.push(transition)
@@ -88,7 +86,7 @@ if __name__ == "__main__" :
 
             if steps % target_update == 0 :
                 agent.update_target()
-            print(steps)
+            #print(steps)
             steps += 1
             
             state = next_state

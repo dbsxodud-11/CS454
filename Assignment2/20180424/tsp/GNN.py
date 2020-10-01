@@ -51,7 +51,6 @@ class GraphLayer(nn.Module) :
         nf_from = edges.src["h"]
         nf_to = edges.dst["h"]
         ef = edges.data["h"]
-
         edge_input = torch.cat([nf_from, nf_to, ef], dim=-1)
         update_ef = self.edge_model(edge_input)
 
