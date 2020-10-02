@@ -22,7 +22,7 @@ def visualization(problem) :
 if __name__ == "__main__" :
 
     #DQN Algorithm
-    max_episode = 10
+    max_episode = 2
 
     input_dim = 14
     output_dim = 12
@@ -46,8 +46,8 @@ if __name__ == "__main__" :
     steps = 1
     target_update = 5
 
-    #env = TspEnv("pr107.tsp")
-    env = TspEnv("rl11849.tsp")
+    env = TspEnv("pr107.tsp")
+    #env = TspEnv("rl11849.tsp")
 
     for episode in range(max_episode) :
         
@@ -108,7 +108,8 @@ if __name__ == "__main__" :
         reward_list.append(total_reward)
         if agent.train_start() :
             loss_list.append(sum(loss_epi)/len(loss_epi))
-        
+
+        trajectory_epi.append(trajectory_epi[0])
         trajectory_list.append(trajectory_epi)
 
         print(episode+1, reward_list[-1])

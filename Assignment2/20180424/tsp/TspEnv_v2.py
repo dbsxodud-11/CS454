@@ -89,14 +89,15 @@ class TspEnv:
         
         done = self.get_done()
         if done :
-            reward = -math.sqrt((position[0] - self.start_position[0])**2 + (position[1] - self.start_position[1])**2)
-            return self.graph, reward, done, self.start
+            for final_dst, final_position in self.node_position.items() :
+                reward = -math.sqrt((position[0] - final_position[0])**2 + (position[1] - final_position[1])**2)
+            reward -= math.sqrt((position[0] - self.start_position[0])**2 + (position[1] - self.start_position[1])**2)
+            return self.graph, reward, done, final_dst-1
         #Execute an action
         #print(self.graph.out_edges(start)[1].tolist())
         next_start = sorted(self.graph.out_edges(start)[1].tolist())[action]
         #print(self.graph.out_edges(next_start)[1].tolist())
         next_position = self.node_position.get(next_start+1)
-
         #Get a Reward
         reward = -math.sqrt((position[0] - next_position[0])**2 + (position[1] - next_position[1])**2)
 
@@ -105,7 +106,7 @@ class TspEnv:
         self.graph.remove_edges(edges_id_in)
         _, nodes_out, edges_id_out = self.graph.out_edges(start, "all")
         self.graph.remove_edges(edges_id_out)
-    
+
         #randomly construct new edges
         for node_lost_edge in nodes_in.tolist() :
             new_adjacent_node = random.sample(self.node_position.keys(), 1)[0]
