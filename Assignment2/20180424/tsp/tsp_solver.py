@@ -22,7 +22,7 @@ def visualization(problem) :
 if __name__ == "__main__" :
 
     #DQN Algorithm
-    max_episode = 2
+    max_episode = 300
 
     input_dim = 14
     output_dim = 12
@@ -58,7 +58,7 @@ if __name__ == "__main__" :
         done = False
         loss_epi = []
         reward_epi = []
-        trajectory_epi.append(start+1)
+        trajectory_epi.append(start)
 
         while not done :
 
@@ -69,7 +69,7 @@ if __name__ == "__main__" :
 
             next_graph, reward, done, next_start = env.step(action, start)
 
-            trajectory_epi.append(next_start+1)
+            trajectory_epi.append(next_start)
 
             if done :
                 break
