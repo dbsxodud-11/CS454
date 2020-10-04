@@ -103,12 +103,12 @@ class DQNAgent(nn.Module) :
 
         update_model(self.main_network, self.target_network, tau=1.0)
 
-    def get_state(self, graph, start) :
+    def get_state(self, graph) :
 
-        self.gnn = GraphNeuralNetwork(num_layer = 3,
+        self.gnn = GraphNeuralNetwork(num_layer = 2,
                                 node_input_dim = 14, node_output_dim = 14,
                                 edge_input_dim = 5, edge_output_dim = 12)
         
         graph = self.gnn(graph)
 
-        return graph.ndata["h"][start].reshape(1, -1).detach()
+        return graph.ndata["h"][0].reshape(1, -1).detach()

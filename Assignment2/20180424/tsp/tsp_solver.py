@@ -8,7 +8,7 @@ import torch
 from GNN import *
 from DQN import *
 #from TspEnv import *;
-from TspEnv_v2 import *;
+from TspEnv_v4 import *;
 
 #Visualization
 def visualization(problem) :
@@ -22,7 +22,7 @@ def visualization(problem) :
 if __name__ == "__main__" :
 
     #DQN Algorithm
-    max_episode = 300
+    max_episode = 100
 
     input_dim = 14
     output_dim = 12
@@ -47,13 +47,14 @@ if __name__ == "__main__" :
     target_update = 5
 
     env = TspEnv("pr107.tsp")
+    #env = TspEnv("rl1304.tsp")
     #env = TspEnv("rl11849.tsp")
 
     for episode in range(max_episode) :
         
         trajectory_epi = []
         graph, start = env.reset()
-        state = agent.get_state(graph, start)
+        state = agent.get_state(graph)
         #print(state, start)
         done = False
         loss_epi = []
@@ -74,7 +75,7 @@ if __name__ == "__main__" :
             if done :
                 break
 
-            next_state = agent.get_state(next_graph, next_start)
+            next_state = agent.get_state(next_graph)
             #print(next_state, next_start)
             reward_epi.append(reward)
             transition = [state, action, reward, next_state, done]
