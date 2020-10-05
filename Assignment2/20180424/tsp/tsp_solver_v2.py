@@ -95,7 +95,7 @@ if __name__ == "__main__" :
     node_position = problem.as_name_dict().get("node_coords")
     numberOfNodes = len(node_position)
 
-    agent = DDPGAgent(state_dim = numberOfNodes+1, action_dim = 2, action_min = 2, action_max = numberOfNodes)
+    agent = DDPGAgent(state_dim = numberOfNodes+1, action_dim = 2, action_min = 1, action_max = numberOfNodes-1)
 
     actor_loss_list = []
     critic_loss_list = []
@@ -120,7 +120,7 @@ if __name__ == "__main__" :
         while not done :
 
             if random.random() < epsilon :
-                action_1, action_2 = [random.randint(1, numberOfNodes), random.randint(1, numberOfNodes)]
+                action_1, action_2 = [random.randint(1, numberOfNodes-1), random.randint(1, numberOfNodes-1)]
             else :
                 action_1, action_2 = agent.get_action(state)
 
@@ -157,7 +157,9 @@ if __name__ == "__main__" :
         print(episode+1, reward_list[-1], best_performance)
         performance_list.append(best_performance)
 
+    plt.ylim(40000, 600000)
     plt.plot(actor_loss_list)
+    plt.axhline(y=44303)
     plt.savefig("C:\CS454\Assignment2\pr107(500, 500)/actor_loss.png")
     plt.close("all")
 
