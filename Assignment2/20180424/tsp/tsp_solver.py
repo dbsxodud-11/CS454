@@ -8,7 +8,8 @@ import torch
 from GNN import *
 from DQN import *
 #from TspEnv import *;
-from TspEnv_v4 import *;
+from TspEnv_v2 import *;
+import csv
 
 #Visualization
 def visualization(problem) :
@@ -22,7 +23,7 @@ def visualization(problem) :
 if __name__ == "__main__" :
 
     #DQN Algorithm
-    max_episode = 100
+    max_episode = 2
 
     input_dim = 14
     output_dim = 12
@@ -123,6 +124,12 @@ if __name__ == "__main__" :
     plt.show()
     plt.close("all")
 
-    print("Best Episode: " + str(best_performance_episode))
+    #print("Best Episode: " + str(best_performance_episode))
     print("Best Performance: " + str(best_performance))
-    print("Trajectory: " + str(trajectory_list[best_performance_episode]))
+    #print("Trajectory: " + str(trajectory_list[best_performance_episode]))
+    best_trajectory = trajectory_list[best_performance_episode]
+
+    with open("solution_2.csv", "w", newline="") as file :
+        writer = csv.writer(file)
+        for city in best_trajectory :
+            writer.writerow([city])
