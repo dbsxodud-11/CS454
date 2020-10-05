@@ -114,7 +114,7 @@ if __name__ == "__main__" :
         trajectory_epi.append(trajectory_epi[0])
         trajectory_list.append(trajectory_epi)
 
-        print(episode+1, reward_list[-1])
+        #print(episode+1, reward_list[-1])
 
     plt.plot(loss_list)
     plt.show()

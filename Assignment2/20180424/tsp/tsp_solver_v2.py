@@ -83,8 +83,8 @@ def get_performance(state, node_position) :
 if __name__ == "__main__" :
     
     #Faster RL algorithm to solve TSP proble - swap nodes to get a better solution
-    max_episode = 10
-    max_epi_step = 20
+    max_episode = 500
+    max_epi_step = 200
 
     #DDPG but use e-greedy action selection(not temporally correlated)
     epsilon = 0.9
@@ -156,32 +156,17 @@ if __name__ == "__main__" :
         if epsilon <= epsilon_min :
             epsilon = epsilon_min
 
-        print(episode+1, reward_list[-1], best_performance)
+        #print(episode+1, reward_list[-1], best_performance)
         performance_list.append(best_performance)
-
-    # plt.plot(actor_loss_list)
-    # plt.savefig("C:\CS454\Assignment2\pr107(500, 500)/actor_loss.png")
-    # plt.close("all")
-
-    # plt.plot(critic_loss_list)
-    # plt.savefig("C:\CS454\Assignment2\pr107(500, 500)/critic_loss.png")
-    # plt.close("all")
-
-    # plt.plot(reward_list)
-    # plt.savefig("C:\CS454\Assignment2\pr107(500, 500)/reward.png")
-    # plt.close("all")
-
-    # plt.plot(performance_list)
-    # plt.savefig("C:\CS454\Assignment2\pr107(500, 500)/performance.png")
-    # plt.close("all")
 
     print("Best Performance: " + str(best_performance))
     best_trajectory = list(map(int, best_trajectory))
     
-    with open("solution.csv", "w", newline="") as file :
+    with open("solution_2.csv", "w", newline="") as file :
         writer = csv.writer(file)
         for city in best_trajectory[:-1] :
             writer.writerow([city])
+    
     #print("Best Trajectory: " + str(best_trajectory))
 
 
