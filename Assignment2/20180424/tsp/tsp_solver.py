@@ -47,9 +47,9 @@ if __name__ == "__main__" :
     steps = 1
     target_update = 5
 
-    env = TspEnv("pr107.tsp")
+    #env = TspEnv("pr107.tsp")
     #env = TspEnv("rl1304.tsp")
-    #env = TspEnv("rl11849.tsp")
+    env = TspEnv("rl11849.tsp")
 
     for episode in range(max_episode) :
         
@@ -129,7 +129,7 @@ if __name__ == "__main__" :
     #print("Trajectory: " + str(trajectory_list[best_performance_episode]))
     best_trajectory = trajectory_list[best_performance_episode]
 
-    with open("solution_2.csv", "w", newline="") as file :
+    with open("solution.csv", "w", newline="") as file :
         writer = csv.writer(file)
         for city in best_trajectory :
             writer.writerow([city])

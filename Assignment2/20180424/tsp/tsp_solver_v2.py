@@ -93,7 +93,7 @@ if __name__ == "__main__" :
     batch_size = 64
 
     #Load a problem
-    problem = tsplib95.load("rl1304.tsp")
+    problem = tsplib95.load("rl11849.tsp")
     node_position = problem.as_name_dict().get("node_coords")
     numberOfNodes = len(node_position)
     
@@ -162,7 +162,7 @@ if __name__ == "__main__" :
     print("Best Performance: " + str(best_performance))
     best_trajectory = list(map(int, best_trajectory))
     
-    with open("solution_2.csv", "w", newline="") as file :
+    with open("solution.csv", "w", newline="") as file :
         writer = csv.writer(file)
         for city in best_trajectory[:-1] :
             writer.writerow([city])
