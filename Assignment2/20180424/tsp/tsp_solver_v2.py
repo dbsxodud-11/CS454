@@ -8,65 +8,26 @@ import math
 import random
 import csv
 
-
-def swap(state, action_1, action_2, node_position) :
-    
-    state = list(map(int, state))
-    index_1 = state.index(action_1)
-    index_2 = state.index(action_2)
-
-    #Get reward
-    if index_1 == index_2 :
-        reward = 0
-    else :
-        reward = 0
-        reward -= math.sqrt((node_position.get(state[index_1-1])[0] - node_position.get(state[index_1])[0])**2 + (node_position.get(state[index_1-1])[1] - node_position.get(state[index_1])[1])**2)
-        reward -= math.sqrt((node_position.get(state[index_1+1])[0] - node_position.get(state[index_1])[0])**2 + (node_position.get(state[index_1+1])[1] - node_position.get(state[index_1])[1])**2)
-        reward -= math.sqrt((node_position.get(state[index_2-1])[0] - node_position.get(state[index_2])[0])**2 + (node_position.get(state[index_2-1])[1] - node_position.get(state[index_2])[1])**2)
-        reward -= math.sqrt((node_position.get(state[index_2+1])[0] - node_position.get(state[index_2])[0])**2 + (node_position.get(state[index_2+1])[1] - node_position.get(state[index_2])[1])**2)
-
-        temp = state[index_1]
-        state[index_1] = state[index_2]
-        state[index_2] = temp
-
-        reward += math.sqrt((node_position.get(state[index_1-1])[0] - node_position.get(state[index_1])[0])**2 + (node_position.get(state[index_1-1])[1] - node_position.get(state[index_1])[1])**2)
-        reward += math.sqrt((node_position.get(state[index_1+1])[0] - node_position.get(state[index_1])[0])**2 + (node_position.get(state[index_1+1])[1] - node_position.get(state[index_1])[1])**2)
-        reward += math.sqrt((node_position.get(state[index_2-1])[0] - node_position.get(state[index_2])[0])**2 + (node_position.get(state[index_2-1])[1] - node_position.get(state[index_2])[1])**2)
-        reward += math.sqrt((node_position.get(state[index_2+1])[0] - node_position.get(state[index_2])[0])**2 + (node_position.get(state[index_2+1])[1] - node_position.get(state[index_2])[1])**2)
-
-
-    return torch.tensor(state, dtype=torch.float32).reshape(1, -1), -reward
-
 def reverse(state, action_1, action_2, node_position) :
 
+    original_performance = get_performance(state, node_position)
     state = list(map(int, state))
     #print(state)
-    index_1 = action_1
-    index_2 = action_2
+    index_1 = min(action_1, action_2)
+    index_2 = max(action_1, action_2)
     #print(index_1, index_2)
     if index_1 == index_2 :
         reward = 0
+        state = torch.tensor(state, dtype=torch.float32).reshape(1, -1)
     else :
-        reward = 0
-        reward -= math.sqrt((node_position.get(state[index_1-1])[0] - node_position.get(state[index_1])[0])**2 + (node_position.get(state[index_1-1])[1] - node_position.get(state[index_1])[1])**2)
-        reward -= math.sqrt((node_position.get(state[index_1+1])[0] - node_position.get(state[index_1])[0])**2 + (node_position.get(state[index_1+1])[1] - node_position.get(state[index_1])[1])**2)
-        reward -= math.sqrt((node_position.get(state[index_2-1])[0] - node_position.get(state[index_2])[0])**2 + (node_position.get(state[index_2-1])[1] - node_position.get(state[index_2])[1])**2)
-        reward -= math.sqrt((node_position.get(state[index_2+1])[0] - node_position.get(state[index_2])[0])**2 + (node_position.get(state[index_2+1])[1] - node_position.get(state[index_2])[1])**2)
+        shuffle = state[index_1:index_2+1]
+        random.shuffle(shuffle)
+        state = state[:index_1] + shuffle + state[index_2+1:]
+        state = torch.tensor(state, dtype=torch.float32).reshape(1, -1)
+        next_performance = get_performance(state.squeeze().tolist(), node_position)
+        reward = original_performance - next_performance
 
-        min_index = min(index_1, index_2)
-        max_index = max(index_1, index_2)
-
-        for i in range(int((max_index - min_index)/2) + 1) :
-            temp = state[min_index + i]
-            state[min_index + i] = state[max_index - i]
-            state[max_index - i] = temp
-        
-        reward += math.sqrt((node_position.get(state[index_1-1])[0] - node_position.get(state[index_1])[0])**2 + (node_position.get(state[index_1-1])[1] - node_position.get(state[index_1])[1])**2)
-        reward += math.sqrt((node_position.get(state[index_1+1])[0] - node_position.get(state[index_1])[0])**2 + (node_position.get(state[index_1+1])[1] - node_position.get(state[index_1])[1])**2)
-        reward += math.sqrt((node_position.get(state[index_2-1])[0] - node_position.get(state[index_2])[0])**2 + (node_position.get(state[index_2-1])[1] - node_position.get(state[index_2])[1])**2)
-        reward += math.sqrt((node_position.get(state[index_2+1])[0] - node_position.get(state[index_2])[0])**2 + (node_position.get(state[index_2+1])[1] - node_position.get(state[index_2])[1])**2)
-
-    return torch.tensor(state, dtype=torch.float32).reshape(1, -1), -reward
+    return state, reward
 
 def get_performance(state, node_position) :
 
@@ -78,13 +39,12 @@ def get_performance(state, node_position) :
 
     return performance
 
-    
 
 if __name__ == "__main__" :
     
     #Faster RL algorithm to solve TSP proble - swap nodes to get a better solution
     max_episode = 500
-    max_epi_step = 200
+    max_epi_step = 100
 
     #DDPG but use e-greedy action selection(not temporally correlated)
     epsilon = 0.9
@@ -93,7 +53,7 @@ if __name__ == "__main__" :
     batch_size = 64
 
     #Load a problem
-    problem = tsplib95.load("rl11849.tsp")
+    problem = tsplib95.load("pr107.tsp")
     node_position = problem.as_name_dict().get("node_coords")
     numberOfNodes = len(node_position)
     
